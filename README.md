@@ -7,7 +7,7 @@ Publish stdout via http.
 
 # Why?
 
-`caster` is an easy way of exposing local services to the internet.
+`caster` is a command line server for easy exposing of local services to the internet.
 
 It was initially conceived for running diagnostics on remote machines, where `ssh` was either not possible or not preferred.
 
