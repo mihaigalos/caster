@@ -17,11 +17,12 @@ It's dockerized and offers a very small [footprint](https://contains.dev/mihaiga
 
 ## Server
 ```bash
-docker run --rm -it -p 8080:8080 mihaigalos/caster
+$ docker run --rm -it -p 8080:8080 mihaigalos/caster
 ```
 To avoid i.e. leaking sensitive information such as passwords, you can pass the `--secure` flag. This will only permit access to named endpoints such as `/ping` or `/curl`.
 
 ## Client
+
 Test if the remote endpoint can reach the internet:
 ```bash
 $ curl localhost:8080 -XPOST -d 'ping -c 3 google.com'
@@ -41,4 +42,10 @@ Test access, ignore TLS/SSL:
 $ curl localhost:8080 -XPOST -d 'curl -sSLk news.ycombinator.com'
 
 <data>
+```
+
+The following are aliases for the above:
+```bash
+$ curl localhost:8080/ping -XPOST -d '-c 3 google.com'
+$ curl localhost:8080/curl -XPOST -d '-sSLk news.ycombinator.com'
 ```
