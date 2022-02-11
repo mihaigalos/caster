@@ -1,10 +1,20 @@
 [package]
 name = "caster"
-description = "Stay tuned."
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
+authors = ["Mihai Galos <mihaigalos@gmail.com>"]
+description = "🚀 Publish stdout via http."
+categories = [
+    "command-line-utilities",
+    "network-programming"
+]
+keywords = [
+    "cli",
+    "publish",
+    "service",
+]
+repository = "https://github.com/mihaigalos/caster"
 license = "MIT"
-
 
 [dependencies]
 hyper = { version = "0.14", features = ["full"] }
