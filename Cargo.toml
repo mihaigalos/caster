@@ -1,6 +1,6 @@
 [package]
 name = "caster"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 authors = ["Mihai Galos <mihaigalos@gmail.com>"]
 description = "🚀 Publish stdout via http."
