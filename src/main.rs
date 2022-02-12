@@ -8,6 +8,9 @@ use std::vec::Drain;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 
+use chrono::prelude::*;
+use hyper::server::conn::AddrStream;
+use std::net::SocketAddr;
 use std::process::Command;
 
 use tower::util::BoxService;
@@ -31,7 +34,11 @@ async fn execute<'a>(command: &str, args: Drain<'_, &'a str>) -> String {
     result
 }
 
-async fn command(explicit_command: &str, input: Request<Body>) -> String {
+async fn command(
+    explicit_command: &str,
+    input: Request<Body>,
+    remote_address: SocketAddr,
+) -> String {
     let whole_body = hyper::body::to_bytes(input.into_body()).await.unwrap();
     let cmd = String::from_utf8(whole_body.iter().cloned().collect::<Vec<u8>>()).unwrap();
     let mut command_with_args: Vec<&str> = cmd.split_whitespace().collect();
@@ -46,18 +53,29 @@ async fn command(explicit_command: &str, input: Request<Body>) -> String {
         args = command_with_args.drain(0..);
     }
 
+    let now: DateTime<Utc> = Utc::now();
+    println!("{} {} # {} {:?}", now, remote_address, command, args);
     return execute(command, args).await;
 }
 
-async fn service(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
+async fn service(
+    req: Request<Body>,
+    remote_address: SocketAddr,
+) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => Ok(Response::new(Body::from(
             "Example usage:\n  curl localhost:8080 -XPOST -d 'ls'\n",
         ))),
 
-        (&Method::POST, "/") => Ok(Response::new(Body::from(command("", req).await))),
-        (&Method::POST, "/ping") => Ok(Response::new(Body::from(command("ping", req).await))),
-        (&Method::POST, "/curl") => Ok(Response::new(Body::from(command("curl", req).await))),
+        (&Method::POST, "/") => Ok(Response::new(Body::from(
+            command("", req, remote_address).await,
+        ))),
+        (&Method::POST, "/ping") => Ok(Response::new(Body::from(
+            command("ping", req, remote_address).await,
+        ))),
+        (&Method::POST, "/curl") => Ok(Response::new(Body::from(
+            command("curl", req, remote_address).await,
+        ))),
 
         _ => {
             let mut not_found = Response::default();
@@ -67,14 +85,17 @@ async fn service(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     }
 }
 
-async fn service_secure(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
+async fn service_secure(
+    req: Request<Body>,
+    remote_address: SocketAddr,
+) -> Result<Response<Body>, hyper::Error> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => Ok(Response::new(Body::from(
             "Example usage:\n  curl localhost:8080 -XPOST -d 'ls'\n",
         ))),
 
-        (&Method::POST, "/ping") => Ok(Response::new(Body::from(command("ping", req).await))),
-        (&Method::POST, "/curl") => Ok(Response::new(Body::from(command("curl", req).await))),
+        (&Method::POST, "/ping") => Ok(Response::new(Body::from(command("ping", req, remote_address).await))),
+        (&Method::POST, "/curl") => Ok(Response::new(Body::from(command("curl", req, remote_address).await))),
 
         _ => Ok(Response::new(Body::from(
             "Server started with --secure. Only explicit endpoints like /ping and /curl are available.\n",
@@ -91,13 +112,18 @@ async fn shutdown_signal() {
 async fn run_server(is_secure: bool) {
     let addr = ([0, 0, 0, 0], 8080).into();
 
-    let service = make_service_fn(move |_| async move {
-        let svc = if is_secure {
-            BoxService::new(service_fn(service_secure))
-        } else {
-            BoxService::new(service_fn(service))
-        };
-        Ok::<_, hyper::Error>(svc)
+    let service = make_service_fn(move |conn: &AddrStream| {
+        let remote_addressess = conn.remote_addr();
+        async move {
+            let svc = if is_secure {
+                BoxService::new(service_fn(move |req| {
+                    service_secure(req, remote_addressess)
+                }))
+            } else {
+                BoxService::new(service_fn(move |req| service(req, remote_addressess)))
+            };
+            Ok::<_, hyper::Error>(svc)
+        }
     });
 
     let server = Server::bind(&addr).serve(service);
