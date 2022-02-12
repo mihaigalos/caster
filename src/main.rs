@@ -88,21 +88,9 @@ async fn shutdown_signal() {
         .expect("failed to install CTRL+C signal handler");
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let app: clap::App = autoclap!();
-    let args = app
-        .arg(
-            Arg::new("secure")
-                .long("secure")
-                .short('s')
-                .help("Only run explicit commands from endpoints such as /ping and /curl to avoid sensitive data leakage."),
-        )
-        .try_get_matches()
-        .unwrap_or_else(|e| e.exit());
+async fn run_server(is_secure: bool) {
     let addr = ([0, 0, 0, 0], 8080).into();
 
-    let is_secure = args.is_present("secure");
     let service = make_service_fn(move |_| async move {
         let svc = if is_secure {
             BoxService::new(service_fn(service_secure))
@@ -126,6 +114,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     if let Err(e) = graceful.await {
         eprintln!("server error: {}", e);
     }
+}
 
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let app: clap::App = autoclap!();
+    let args = app
+        .arg(
+            Arg::new("secure")
+                .long("secure")
+                .short('s')
+                .help("Only run explicit commands from endpoints such as /ping and /curl to avoid sensitive data leakage."),
+        )
+        .try_get_matches()
+        .unwrap_or_else(|e| e.exit());
+
+    run_server(args.is_present("secure")).await;
     Ok(())
 }
