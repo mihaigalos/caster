@@ -114,7 +114,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let server = Server::bind(&addr).serve(service);
     let graceful = server.with_graceful_shutdown(shutdown_signal());
-    println!("Listening on http://{}", addr);
+
+    println!(
+        "{}",
+        format!(
+            "Caster {} - Listening on http://{}",
+            env!("CARGO_PKG_VERSION"),
+            addr
+        )
+    );
     if let Err(e) = graceful.await {
         eprintln!("server error: {}", e);
     }
