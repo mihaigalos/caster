@@ -10,6 +10,8 @@ use hyper::{Body, Method, Request, Response, Server, StatusCode};
 
 use std::process::Command;
 
+use tower::util::BoxService;
+
 async fn execute<'a>(command: &str, args: Drain<'_, &'a str>) -> String {
     let output = Command::new(command)
         .args(args)
@@ -100,22 +102,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .unwrap_or_else(|e| e.exit());
     let addr = ([0, 0, 0, 0], 8080).into();
 
-    if args.is_present("secure") {
-        let service =
-            make_service_fn(|_| async { Ok::<_, hyper::Error>(service_fn(service_secure)) });
-        let server = Server::bind(&addr).serve(service);
-        let graceful = server.with_graceful_shutdown(shutdown_signal());
-        if let Err(e) = graceful.await {
-            eprintln!("server error: {}", e);
-        }
-    } else {
-        let service = make_service_fn(|_| async { Ok::<_, hyper::Error>(service_fn(service)) });
-        let server = Server::bind(&addr).serve(service);
-        let graceful = server.with_graceful_shutdown(shutdown_signal());
-        if let Err(e) = graceful.await {
-            eprintln!("server error: {}", e);
-        }
-    }
+    let is_secure = args.is_present("secure");
+    let service = make_service_fn(move |_| async move {
+        let svc = if is_secure {
+            BoxService::new(service_fn(service_secure))
+        } else {
+            BoxService::new(service_fn(service))
+        };
+        Ok::<_, hyper::Error>(svc)
+    });
+
+    let server = Server::bind(&addr).serve(service);
+    let graceful = server.with_graceful_shutdown(shutdown_signal());
     println!("Listening on http://{}", addr);
+    if let Err(e) = graceful.await {
+        eprintln!("server error: {}", e);
+    }
+
     Ok(())
 }
