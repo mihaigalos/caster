@@ -80,6 +80,12 @@ async fn service_secure(req: Request<Body>) -> Result<Response<Body>, hyper::Err
     }
 }
 
+async fn shutdown_signal() {
+    tokio::signal::ctrl_c()
+        .await
+        .expect("failed to install CTRL+C signal handler");
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let app: clap::App = autoclap!();
@@ -98,11 +104,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let service =
             make_service_fn(|_| async { Ok::<_, hyper::Error>(service_fn(service_secure)) });
         let server = Server::bind(&addr).serve(service);
-        server.await?;
+        let graceful = server.with_graceful_shutdown(shutdown_signal());
+        if let Err(e) = graceful.await {
+            eprintln!("server error: {}", e);
+        }
     } else {
         let service = make_service_fn(|_| async { Ok::<_, hyper::Error>(service_fn(service)) });
         let server = Server::bind(&addr).serve(service);
-        server.await?;
+        let graceful = server.with_graceful_shutdown(shutdown_signal());
+        if let Err(e) = graceful.await {
+            eprintln!("server error: {}", e);
+        }
     }
     println!("Listening on http://{}", addr);
     Ok(())
