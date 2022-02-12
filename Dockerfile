@@ -23,4 +23,4 @@ RUN apk update && apk add \
 COPY --from=base /src/target/release/caster /usr/local/bin
 
 ENTRYPOINT [ "caster" ]
-CMD [ "" ]
+CMD [ "--" ]

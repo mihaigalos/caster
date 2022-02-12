@@ -17,7 +17,7 @@ It's dockerized and offers a very small [footprint](https://contains.dev/mihaiga
 
 ## Server
 ```bash
-$ docker run --rm -it -p 8080:8080 mihaigalos/caster --
+$ docker run --rm -it -p 8080:8080 mihaigalos/caster
 ```
 To avoid i.e. leaking sensitive information such as passwords, you can pass the `--secure` flag. This will only permit access to named endpoints such as `/ping` or `/curl`.
 
