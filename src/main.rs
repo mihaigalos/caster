@@ -54,7 +54,13 @@ async fn command(
     }
 
     let now: DateTime<Utc> = Utc::now();
-    println!("{} {} # {} {:?}", now, remote_address, command, args);
+    println!(
+        "{} {} # {} {}",
+        now,
+        remote_address,
+        command,
+        args.as_slice().join(" ")
+    );
     return execute(command, args).await;
 }
 
