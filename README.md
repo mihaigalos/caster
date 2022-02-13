@@ -5,6 +5,8 @@
 
 Publish stdout via http.
 
+![caster](screenshots/caster.png)
+
 # Why?
 
 `caster` is a command line server for easy exposing of local services to the internet.
