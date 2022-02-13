@@ -1,0 +1,40 @@
+_default:
+  @just --list --unsorted
+
+tool := "caster"
+
+build:
+    cargo build
+
+test: build
+  #!/bin/bash
+  source common.sh
+  cargo run &
+  sleep 2
+  CARGO_RUN_PID=$!
+  for test in $(grep ^_test_ Justfile | cut -d':' -f1);
+  do
+      just $test && true || err "Stopping."
+  done
+  kill -9 $CARGO_RUN_PID
+
+_test_ping:
+  #!/bin/bash
+  test=$(basename $0) && source common.sh
+  curl localhost:8080/ping -XPOST -d '-c 3 google.com'
+  highlight $test &&  echo -n " "
+  [ $? -eq 0 ] && ok || err "ERROR: exit status not 0."
+
+_test_curl:
+  #!/bin/bash
+  test=$(basename $0) && source common.sh
+  curl localhost:8080/curl -XPOST -d '-sSLk wttr.in?format=3'
+  highlight $test &&  echo -n " "
+  [ $? -eq 0 ] && ok || err "ERROR: exit status not 0."
+
+_test_generic_command:
+  #!/bin/bash
+  test=$(basename $0) && source common.sh
+  curl localhost:8080 -XPOST -d 'pwd'
+  highlight $test &&  echo -n " "
+  [ $? -eq 0 ] && ok || err "ERROR: exit status not 0."
