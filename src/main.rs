@@ -16,22 +16,44 @@ use std::process::Command;
 use colored::Colorize;
 use tower::util::BoxService;
 
-async fn execute<'a>(command: &str, args: Drain<'_, &'a str>) -> String {
+async fn execute<'a>(
+    command: &str,
+    args: Drain<'_, &'a str>,
+    remote_address: SocketAddr,
+) -> String {
+    let args_string = args.as_slice().join(" ");
     let output = Command::new(command)
         .args(args)
         .output()
         .expect("failed to execute command");
     let mut result = String::from_utf8(output.stdout).unwrap();
 
-    if output.status.code().unwrap() != 0 {
+    let exit_status = output.status.code().unwrap();
+    if exit_status != 0 {
         result = result
             + "Exit status: "
-            + &output.status.code().unwrap().to_string()
+            + &exit_status.to_string()
             + "\n\n"
             + "stderr:\n"
             + &String::from_utf8(output.stderr).unwrap()
             + "\n";
     }
+    let now: DateTime<Utc> = Utc::now();
+    let pos_colon = remote_address.to_string().find(':').unwrap();
+
+    let exit_status_string = match exit_status {
+        0 => "OK".bright_green().bold(),
+        _ => exit_status.to_string().bright_red().bold(),
+    };
+    println!(
+        "{:width$} {:<15} {:>6} {:>8} {:<16}",
+        now.to_string().bright_green().bold(),
+        remote_address.to_string()[..pos_colon].bright_cyan().bold(),
+        exit_status_string,
+        command.bright_blue().bold(),
+        args_string.yellow().bold(),
+        width = 32
+    );
     result
 }
 
@@ -54,17 +76,7 @@ async fn command(
         args = command_with_args.drain(0..);
     }
 
-    let now: DateTime<Utc> = Utc::now();
-    let pos_colon = remote_address.to_string().find(':').unwrap();
-    println!(
-        "{:width$} {:<15} {:>8} {:<16}",
-        now.to_string().bright_green().bold(),
-        remote_address.to_string()[..pos_colon].bright_cyan().bold(),
-        command.bright_blue().bold(),
-        args.as_slice().join(" ").yellow().bold(),
-        width = 32
-    );
-    return execute(command, args).await;
+    return execute(command, args, remote_address).await;
 }
 
 async fn service(
@@ -133,9 +145,10 @@ async fn run_server(is_secure: bool) {
         .yellow()
     );
     println!(
-        "{:width$} {:<15} {:>8} {:<16}",
+        "{:width$} {:<15} {:>6} {:>8} {:<16}",
         "Timestamp".yellow(),
         "IP".yellow(),
+        "Status".yellow(),
         "Command".yellow(),
         "Args".yellow(),
         width = 33
