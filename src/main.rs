@@ -132,6 +132,14 @@ async fn run_server(is_secure: bool) {
         )
         .yellow()
     );
+    println!(
+        "{:width$} {:<15} {:>8} {:<16}",
+        "Timestamp".yellow(),
+        "IP".yellow(),
+        "Command".yellow(),
+        "Args".yellow(),
+        width = 33
+    );
     if let Err(e) = graceful.await {
         eprintln!("server error: {}", e);
     }
