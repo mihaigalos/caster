@@ -13,6 +13,7 @@ use hyper::server::conn::AddrStream;
 use std::net::SocketAddr;
 use std::process::Command;
 
+use colored::Colorize;
 use tower::util::BoxService;
 
 async fn execute<'a>(command: &str, args: Drain<'_, &'a str>) -> String {
@@ -54,12 +55,14 @@ async fn command(
     }
 
     let now: DateTime<Utc> = Utc::now();
+    let pos_colon = remote_address.to_string().find(':').unwrap();
     println!(
-        "{} {} # {} {}",
-        now,
-        remote_address,
-        command,
-        args.as_slice().join(" ")
+        "{:width$} {:<15} {:>8} {:<16}",
+        now.to_string().bright_green().bold(),
+        remote_address.to_string()[..pos_colon].bright_cyan().bold(),
+        command.bright_blue().bold(),
+        args.as_slice().join(" ").yellow().bold(),
+        width = 32
     );
     return execute(command, args).await;
 }
@@ -136,12 +139,13 @@ async fn run_server(is_secure: bool) {
     let graceful = server.with_graceful_shutdown(shutdown_signal());
 
     println!(
-        "{}",
+        "{}\n",
         format!(
             "Caster {} - Listening on http://{}",
             env!("CARGO_PKG_VERSION"),
             addr
         )
+        .yellow()
     );
     if let Err(e) = graceful.await {
         eprintln!("server error: {}", e);
