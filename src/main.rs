@@ -70,7 +70,14 @@ async fn command(
 async fn service(
     req: Request<Body>,
     remote_address: SocketAddr,
+    is_secure: bool,
 ) -> Result<Response<Body>, hyper::Error> {
+    if is_secure && (req.method() == &Method::POST && req.uri().path() == ("/")) {
+        let message = "Server started with --secure. Only explicit endpoints like /ping and /curl are available.\n";
+        let mut response = Response::new(Body::from(message));
+        *response.status_mut() = StatusCode::UNAUTHORIZED;
+        return Ok(response);
+    }
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => Ok(Response::new(Body::from(
             "Example usage:\n  curl localhost:8080 -XPOST -d 'ls'\n",
@@ -94,24 +101,6 @@ async fn service(
     }
 }
 
-async fn service_secure(
-    req: Request<Body>,
-    remote_address: SocketAddr,
-) -> Result<Response<Body>, hyper::Error> {
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") => Ok(Response::new(Body::from(
-            "Example usage:\n  curl localhost:8080 -XPOST -d 'ls'\n",
-        ))),
-
-        (&Method::POST, "/ping") => Ok(Response::new(Body::from(command("ping", req, remote_address).await))),
-        (&Method::POST, "/curl") => Ok(Response::new(Body::from(command("curl", req, remote_address).await))),
-
-        _ => Ok(Response::new(Body::from(
-            "Server started with --secure. Only explicit endpoints like /ping and /curl are available.\n",
-        ))),
-    }
-}
-
 async fn shutdown_signal() {
     tokio::signal::ctrl_c()
         .await
@@ -124,13 +113,9 @@ async fn run_server(is_secure: bool) {
     let service = make_service_fn(move |conn: &AddrStream| {
         let remote_addressess = conn.remote_addr();
         async move {
-            let svc = if is_secure {
-                BoxService::new(service_fn(move |req| {
-                    service_secure(req, remote_addressess)
-                }))
-            } else {
-                BoxService::new(service_fn(move |req| service(req, remote_addressess)))
-            };
+            let svc = BoxService::new(service_fn(move |req| {
+                service(req, remote_addressess, is_secure)
+            }));
             Ok::<_, hyper::Error>(svc)
         }
     });
