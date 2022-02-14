@@ -46,8 +46,14 @@ $ curl localhost:8080 -XPOST -d 'curl -sSLk news.ycombinator.com'
 <data>
 ```
 
+Use remote `jq` service for formatting json:
+```bash
+$ curl localhost:8080 -XPOST -d 'jq -n {key:"value"}'
+```
+
 The following are aliases for the above:
 ```bash
 $ curl localhost:8080/ping -XPOST -d '-c 3 google.com'
 $ curl localhost:8080/curl -XPOST -d '-sSLk news.ycombinator.com'
+$ curl localhost:8080/jq -XPOST -d '-n {key:"value"}'
 ```

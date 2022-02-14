@@ -98,6 +98,9 @@ async fn service(
         (&Method::POST, "/") => Ok(Response::new(Body::from(
             command("", req, remote_address).await,
         ))),
+        (&Method::POST, "/jq") => Ok(Response::new(Body::from(
+            command("jq", req, remote_address).await,
+        ))),
         (&Method::POST, "/ping") => Ok(Response::new(Body::from(
             command("ping", req, remote_address).await,
         ))),

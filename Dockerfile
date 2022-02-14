@@ -18,6 +18,7 @@ FROM alpine:3.14 as tool
 
 RUN apk update && apk add \
     curl \
+    jq \
     libgcc
 
 COPY --from=base /src/target/release/caster /usr/local/bin
