@@ -38,3 +38,17 @@ _test_generic_command:
   curl localhost:8080 -XPOST -d 'pwd'
   highlight $test &&  echo -n " "
   [ $? -eq 0 ] && ok || err "ERROR: exit status not 0."
+
+_test_jq:
+  #!/bin/bash
+  test=$(basename $0) && source common.sh
+  curl localhost:8080 -XPOST -d "jq -n {\"key\":0}"
+  highlight $test &&  echo -n " "
+  [ $? -eq 0 ] && ok || err "ERROR: exit status not 0."
+
+_test_curl_jq:
+  #!/bin/bash
+  test=$(basename $0) && source common.sh
+  return_code=$(curl -s -o /dev/null  localhost:8080 -XPOST -d 'curl -s localhost:8080 -XPOST -d "jq -n {\"key\":0}"' -w "%{http_code}")
+  highlight $test &&  echo -n " "
+  [ $return_code = 200 ] && ok || err "ERROR: exit status not 0."
