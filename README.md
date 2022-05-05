@@ -1,9 +1,8 @@
 # caster
 
-[![crates.io](https://img.shields.io/crates/d/caster.svg)](https://crates.io/crates/caster)
-[![docker pulls](https://img.shields.io/docker/pulls/mihaigalos/caster)](https://hub.docker.com/r/mihaigalos/caster)
+[![crates.io](https://img.shields.io/crates/d/caster.svg)](https://crates.io/crates/caster) [![docker pulls](https://img.shields.io/docker/pulls/mihaigalos/caster)](https://hub.docker.com/r/mihaigalos/caster)
 
-Publish stdout via http.
+Publish local commands and services via http.
 
 ![caster](screenshots/caster.png)
 
