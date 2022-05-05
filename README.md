@@ -8,13 +8,11 @@ Publish local commands and services via http.
 
 # Why?
 
-`caster` is a command line server for easy exposing of local services to the internet.
-
-It was initially conceived for running diagnostics on remote machines, where `ssh` was either not possible or not preferred.
-
-It's dockerized and offers a very small [footprint](https://contains.dev/mihaigalos/caster), `<10MB`.
+`caster` can be used for running commands on remote machines, where `ssh` was either not possible (no permissions) or not preferred (principle of least privilege).
 
 # Usage
+
+The server [`docker image`](https://contains.dev/mihaigalos/caster) is `<10MB`.
 
 ## Server
 ```bash
