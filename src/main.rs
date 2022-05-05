@@ -22,8 +22,12 @@ async fn execute<'a>(
     remote_address: SocketAddr,
 ) -> String {
     let args_string = args.as_slice().join(" ");
-    let output = Command::new(command)
-        .args(args)
+    let bash_args = [
+        "-c".to_string(),
+        command.to_string() + &" ".to_string() + &args.as_slice().join(" "),
+    ];
+    let output = Command::new("bash")
+        .args(bash_args)
         .output()
         .expect("failed to execute command");
     let mut result = String::from_utf8(output.stdout).unwrap();
