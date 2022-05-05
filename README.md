@@ -57,3 +57,14 @@ $ curl localhost:8080/ping -XPOST -d '-c 3 google.com'
 $ curl localhost:8080/curl -XPOST -d '-sSLk news.ycombinator.com'
 $ curl localhost:8080/jq -XPOST -d '-n {key:"value"}'
 ```
+
+### Nested curl
+
+curl-ing with another nested `curl` command and passing arguments to it:
+
+```bash
+$ curl -s localhost:8080 -XPOST -d 'curl -s localhost:8080 -XPOST -d "jq -n {\"key\":0}"'
+{
+  "key": 0
+}
+```
