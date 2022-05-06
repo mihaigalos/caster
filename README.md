@@ -8,7 +8,7 @@ Publish local commands and services via http.
 
 # Why?
 
-`caster` can be used for running commands on remote machines, where `ssh` was either not possible (no permissions) or not preferred (principle of least privilege).
+`caster` can be used for running commands on remote machines, where `ssh` is either not possible (no permissions) or not preferred (principle of least privilege).
 
 # Usage
 
