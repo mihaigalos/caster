@@ -20,7 +20,7 @@ cargo install caster
 
 ## Using precompiled binaries
 
-Will be implemented as an upoming feature.
+Will be implemented as an upcoming feature.
 
 ## Docker
 The server [`docker image`](https://contains.dev/mihaigalos/caster) is `<10MB`.
