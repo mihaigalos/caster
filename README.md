@@ -12,15 +12,26 @@ Publish local commands and services via http.
 
 # Usage
 
+## Building from source
+
+```bash
+cargo install caster
+```
+
+## Using precompiled binaries
+
+Will be implemented as an upoming feature.
+
+## Docker
 The server [`docker image`](https://contains.dev/mihaigalos/caster) is `<10MB`.
 
-## Server
+### Server
 ```bash
 $ docker run --rm -it -p 8080:8080 mihaigalos/caster
 ```
 To avoid i.e. leaking sensitive information such as passwords, you can pass the `--secure` flag. This will only permit access to named endpoints such as `/ping` or `/curl`.
 
-## Client
+### Client
 
 Test if the remote endpoint can reach the internet:
 ```bash
@@ -55,7 +66,7 @@ $ curl localhost:8080/curl -XPOST -d '-sSLk news.ycombinator.com'
 $ curl localhost:8080/jq -XPOST -d '-n {key:"value"}'
 ```
 
-### Nested curl
+#### Nested curl
 
 curl-ing with another nested `curl` command and passing arguments to it:
 
