@@ -24,7 +24,7 @@ async fn execute<'a>(
     let args_string = args.as_slice().join(" ");
     let bash_args = [
         "-c".to_string(),
-        command.to_string() + &" ".to_string() + &args.as_slice().join(" "),
+        command.to_string() + " " + &args.as_slice().join(" "),
     ];
     let output = Command::new("bash")
         .args(bash_args)
@@ -72,7 +72,7 @@ async fn command(
 
     let command;
     let args;
-    if explicit_command == "" {
+    if explicit_command.is_empty() {
         command = command_with_args[0];
         args = command_with_args.drain(1..);
     } else {
@@ -161,7 +161,7 @@ async fn run_server(is_secure: bool) {
         width = 33
     );
     if let Err(e) = graceful.await {
-        eprintln!("server error: {}", e);
+        eprintln!("server error: {e}");
     }
 }
 
