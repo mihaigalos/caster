@@ -1,8 +1,8 @@
 #![deny(warnings)]
 
 use autoclap::autoclap;
-use clap::App;
-use clap::Arg;
+use clap::Command;
+use clap::{Arg, ArgAction};
 use std::vec::Drain;
 
 use hyper::service::{make_service_fn, service_fn};
@@ -11,7 +11,7 @@ use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use chrono::prelude::*;
 use hyper::server::conn::AddrStream;
 use std::net::SocketAddr;
-use std::process::Command;
+use std::process::Command as StdProcessCommand;
 
 use colored::Colorize;
 use tower::util::BoxService;
@@ -26,7 +26,7 @@ async fn execute<'a>(
         "-c".to_string(),
         command.to_string() + " " + &args.as_slice().join(" "),
     ];
-    let output = Command::new("bash")
+    let output = StdProcessCommand::new("bash")
         .args(bash_args)
         .output()
         .expect("failed to execute command");
@@ -167,17 +167,16 @@ async fn run_server(is_secure: bool) {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let app: clap::App = autoclap!();
-    let args = app
+
+    let app: clap::Command = autoclap!()
         .arg(
             Arg::new("secure")
                 .long("secure")
                 .short('s')
                 .help("Only run explicit commands from endpoints such as /ping and /curl to avoid sensitive data leakage."),
-        )
-        .try_get_matches()
-        .unwrap_or_else(|e| e.exit());
+        );
 
-    run_server(args.is_present("secure")).await;
+    let args = app.clone().try_get_matches().unwrap_or_else(|e| e.exit());
+    run_server(args.get_flag("secure")).await;
     Ok(())
 }
