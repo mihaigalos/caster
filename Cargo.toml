@@ -24,4 +24,4 @@ colored = "2.0.0"
 hyper = { version = "0.14", features = ["full"] }
 pretty_env_logger = "0.4"
 tokio = { version = "1", features = ["full"] }
-tower = { version = "0.4.11", features = ["util"] }
+tower = { version = "0.4.13", features = ["util"] }
