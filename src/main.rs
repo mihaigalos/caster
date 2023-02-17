@@ -1,8 +1,8 @@
 #![deny(warnings)]
 
 use autoclap::autoclap;
-use clap::App;
-use clap::Arg;
+use clap::Command;
+use clap::{Arg, ArgAction};
 use std::vec::Drain;
 
 use hyper::service::{make_service_fn, service_fn};
@@ -11,7 +11,7 @@ use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use chrono::prelude::*;
 use hyper::server::conn::AddrStream;
 use std::net::SocketAddr;
-use std::process::Command;
+use std::process::Command as StdProcessCommand;
 
 use colored::Colorize;
 use tower::util::BoxService;
@@ -24,9 +24,9 @@ async fn execute<'a>(
     let args_string = args.as_slice().join(" ");
     let bash_args = [
         "-c".to_string(),
-        command.to_string() + &" ".to_string() + &args.as_slice().join(" "),
+        command.to_string() + " " + &args.as_slice().join(" "),
     ];
-    let output = Command::new("bash")
+    let output = StdProcessCommand::new("bash")
         .args(bash_args)
         .output()
         .expect("failed to execute command");
@@ -72,7 +72,7 @@ async fn command(
 
     let command;
     let args;
-    if explicit_command == "" {
+    if explicit_command.is_empty() {
         command = command_with_args[0];
         args = command_with_args.drain(1..);
     } else {
@@ -88,7 +88,7 @@ async fn service(
     remote_address: SocketAddr,
     is_secure: bool,
 ) -> Result<Response<Body>, hyper::Error> {
-    if is_secure && (req.method() == &Method::POST && req.uri().path() == ("/")) {
+    if is_secure && (req.method() == Method::POST && req.uri().path() == ("/")) {
         let message = "Server started with --secure. Only explicit endpoints like /ping and /curl are available.\n";
         let mut response = Response::new(Body::from(message));
         *response.status_mut() = StatusCode::UNAUTHORIZED;
@@ -161,23 +161,22 @@ async fn run_server(is_secure: bool) {
         width = 33
     );
     if let Err(e) = graceful.await {
-        eprintln!("server error: {}", e);
+        eprintln!("server error: {e}");
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let app: clap::App = autoclap!();
-    let args = app
+
+    let app: clap::Command = autoclap!()
         .arg(
             Arg::new("secure")
                 .long("secure")
                 .short('s')
                 .help("Only run explicit commands from endpoints such as /ping and /curl to avoid sensitive data leakage."),
-        )
-        .try_get_matches()
-        .unwrap_or_else(|e| e.exit());
+        );
 
-    run_server(args.is_present("secure")).await;
+    let args = app.clone().try_get_matches().unwrap_or_else(|e| e.exit());
+    run_server(args.get_flag("secure")).await;
     Ok(())
 }
