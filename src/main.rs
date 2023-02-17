@@ -88,7 +88,7 @@ async fn service(
     remote_address: SocketAddr,
     is_secure: bool,
 ) -> Result<Response<Body>, hyper::Error> {
-    if is_secure && (req.method() == &Method::POST && req.uri().path() == ("/")) {
+    if is_secure && (req.method() == Method::POST && req.uri().path() == ("/")) {
         let message = "Server started with --secure. Only explicit endpoints like /ping and /curl are available.\n";
         let mut response = Response::new(Body::from(message));
         *response.status_mut() = StatusCode::UNAUTHORIZED;
