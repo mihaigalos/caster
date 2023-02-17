@@ -1,6 +1,8 @@
 # caster
 
-[![crates.io](https://img.shields.io/crates/d/caster.svg)](https://crates.io/crates/caster) [![docker pulls](https://img.shields.io/docker/pulls/mihaigalos/caster)](https://hub.docker.com/r/mihaigalos/caster)
+[![CI](https://github.com/mihaigalos/caster/actions/workflows/ci.yaml/badge.svg)](https://github.com/mihaigalos/caster/actions/workflows/ci.yaml)
+[![crates.io](https://img.shields.io/crates/d/caster.svg)](https://crates.io/crates/caster)
+[![docker pulls](https://img.shields.io/docker/pulls/mihaigalos/caster)](https://hub.docker.com/r/mihaigalos/caster)
 
 Publish local commands and services via http.
 
