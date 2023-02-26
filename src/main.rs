@@ -2,7 +2,7 @@
 
 use autoclap::autoclap;
 use clap::Command;
-use clap::{Arg, ArgAction};
+use clap::Arg;
 use std::vec::Drain;
 
 use hyper::service::{make_service_fn, service_fn};
