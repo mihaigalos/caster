@@ -80,7 +80,8 @@ async fn command(
         args = command_with_args.drain(0..);
     }
 
-    return execute(command, args, remote_address).await;
+    execute(command, args, remote_address).await;
+    "".to_string()
 }
 
 async fn service(
